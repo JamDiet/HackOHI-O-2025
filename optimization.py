@@ -1,7 +1,4 @@
-import numpy as np
-import json
 from scipy.optimize import differential_evolution
-
 import socket
 import json
 import numpy as np
@@ -52,6 +49,7 @@ def optimize(num_passengers: int):
     bounds = np.array([(0., 1.) for _ in range(num_passengers)])
 
     simulator = UnitySimulator()
+    simulator.connect()
 
     res = differential_evolution(simulator.objective, bounds=bounds, x0=x0)
 

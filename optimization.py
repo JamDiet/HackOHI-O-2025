@@ -41,7 +41,7 @@ def order_by_weights(weight_arr: np.ndarray):
     '''
     Order passenger seat numbers by the weight attributed to each seat.
     '''
-    return np.argsort(weight_arr) + np.ones(weight_arr.shape)
+    return np.argsort(weight_arr) + np.ones(weight_arr.shape, dtype=int)
 
 
 if __name__ == '__main__':

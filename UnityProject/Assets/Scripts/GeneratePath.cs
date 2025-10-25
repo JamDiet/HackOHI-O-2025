@@ -90,11 +90,11 @@ public class GeneratePath : MonoBehaviour
             steps += 1;
             
         }
-        // yield return new WaitForSeconds(0.1f);
-        // GameObject[] passengers = GameObject.FindGameObjectsWithTag("Passenger");
-        // for(int i = 0; i < passengers.Length; i++){
-        //     Destroy(passengers[i]);
-        // }
+        //yield return new WaitForSeconds(0.1f);
+        GameObject[] passengers = GameObject.FindGameObjectsWithTag("Passenger");
+        for(int i = 0; i < passengers.Length; i++){
+            Destroy(passengers[i]);
+        }
         Debug.Log("Finished!");
     }
 

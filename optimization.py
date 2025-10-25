@@ -116,7 +116,7 @@ class UnitySimulator:
 
         # Get simulation results and return losses
         loss_dict = self.simulate(passenger_sequence)
-        loss += loss_dict['time'] + np.std(loss_dict['time_per_passenger'])
+        loss += loss_dict['time']
 
         return loss
     
@@ -136,14 +136,14 @@ def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
-    simulator.connect()
+    # simulator.connect()
 
     # Establish optimization conditions
     num_passengers = 20
     maxiter = 10
 
     # Establish classes and which seats
-    classes = np.array([range(1, 11), range(11, 21)])
+    classes = [np.arange(1, 11), np.arange(11, 21)]
 
     # Optimize and print best results
     order = []

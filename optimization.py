@@ -30,21 +30,14 @@ class UnitySimulator:
         result = json.loads(result_bytes.decode('utf-8'))
         
         return result['time']
+
+    def objective(self, weight_arr: np.ndarray):
+        passenger_sequence = order_by_weights(weight_arr)
+        return self.simulate(passenger_sequence)
     
     def close(self):
         if self.socket:
             self.socket.close()
-
-# Usage
-simulator = UnitySimulator()
-simulator.connect()
-
-for generation in range(100):
-    passenger_sequence = np.random.permutation(150)
-    boarding_time = simulator.simulate(passenger_sequence)
-    print(f"Generation {generation}: Time = {boarding_time}")
-
-simulator.close()
 
 
 def order_by_weights(weight_arr: np.ndarray):
@@ -54,24 +47,12 @@ def order_by_weights(weight_arr: np.ndarray):
     return np.argsort(weight_arr) + np.ones(weight_arr.shape)
 
 
-def call_to_unity(passenger_sequence: np.ndarray, socket):
-    json_sequence = json.dumps(passenger_sequence.tolist()).encode('utf-8')
-    # TODO - Interface with Jonah's code, return total time and individual passenger times
-
-
-def objective(weight_arr: np.ndarray):
-    '''
-    Objective function for SciPy differential evolution
-    '''
-    passenger_sequence = order_by_weights(weight_arr)
-    total_time, passenger_times = call_to_unity(passenger_sequence)
-    return total_time + np.std(passenger_times)
-
-
 def optimize(num_passengers: int):
     x0 = np.array(range(1, num_passengers+1)) / float(num_passengers)
     bounds = np.array([(0., 1.) for _ in range(num_passengers)])
 
-    res = differential_evolution(func=objective, bounds=bounds, x0=x0)
+    simulator = UnitySimulator()
+
+    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0)
 
     return order_by_weights(res.x)

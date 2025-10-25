@@ -24,13 +24,17 @@ class UnitySimulator:
         
         # Receive result
         result_bytes = self.socket.recv(4096)
-        result = json.loads(result_bytes.decode('utf-8'))
-        
-        return result['time']
+
+        # Return simulation results
+        return json.loads(result_bytes.decode('utf-8'))
 
     def objective(self, weight_arr: np.ndarray):
+        # Convert weight array into int array of passenger numbers
         passenger_sequence = order_by_weights(weight_arr)
-        return self.simulate(passenger_sequence)
+
+        # Get simulation results and return losses
+        loss_dict =  self.simulate(passenger_sequence)
+        return loss_dict['time'] + np.std(loss_dict['time_per_passenger'])
     
     def close(self):
         if self.socket:
@@ -45,11 +49,16 @@ def order_by_weights(weight_arr: np.ndarray):
 
 
 if __name__ == '__main__':
+    # Initialize simulator
     simulator = UnitySimulator()
     simulator.connect()
 
+    # Establish optimization conditions
     num_passengers = 20
     x0 = np.array(range(1, num_passengers+1)) / num_passengers
     bounds = np.array([(0., 1.) for _ in range(num_passengers)])
+    maxiter = 10
 
-    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0)
+    # Optimize and print best results
+    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
+    print(order_by_weights(res.x))

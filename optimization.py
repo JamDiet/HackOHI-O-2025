@@ -44,13 +44,12 @@ def order_by_weights(weight_arr: np.ndarray):
     return np.argsort(weight_arr) + np.ones(weight_arr.shape)
 
 
-def optimize(num_passengers: int):
-    x0 = np.array(range(1, num_passengers+1)) / float(num_passengers)
-    bounds = np.array([(0., 1.) for _ in range(num_passengers)])
-
+if __name__ == '__main__':
     simulator = UnitySimulator()
     simulator.connect()
 
-    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0)
+    num_passengers = 20
+    x0 = np.array(range(1, num_passengers+1)) / num_passengers
+    bounds = np.array([(0., 1.) for _ in range(num_passengers)])
 
-    return order_by_weights(res.x)
+    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0)

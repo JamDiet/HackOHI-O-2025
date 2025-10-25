@@ -43,43 +43,56 @@ public class NetworkHandler : MonoBehaviour
 
         while (true)
         {
-            using (TcpClient client = listener.AcceptTcpClient())
-            using (NetworkStream stream = client.GetStream())
+            TcpClient client = listener.AcceptTcpClient();
+            NetworkStream stream = client.GetStream();
+            Debug.Log("Client connected");
+
+            while (true)
             {
-                byte[] buffer = new byte[4096];
-                int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                string json = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                var parameters = JsonConvert.DeserializeObject<Dictionary<string, int[]>>(json);
-
-                // Use synchronization primitive to wait for Unity main thread
-                AutoResetEvent doneEvent = new AutoResetEvent(false);
-                float time = 0f;
-
-                // Queue simulation to run on Unity main thread
-                lock (mainThreadActions)
+                try
                 {
-                    mainThreadActions.Enqueue(() =>
+                    byte[] buffer = new byte[4096];
+                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                    if (bytesRead == 0) break; // client disconnected
+
+                    string json = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+                    var parameters = JsonConvert.DeserializeObject<Dictionary<string, int[]>>(json);
+
+                    AutoResetEvent doneEvent = new AutoResetEvent(false);
+                    float time = 0f;
+
+                    lock (mainThreadActions)
                     {
-                        StartCoroutine(RunSimulationCoroutine(parameters, result =>
+                        mainThreadActions.Enqueue(() =>
                         {
-                            time = result;
-                            doneEvent.Set();
-                        }));
-                    });
+                            StartCoroutine(RunSimulationCoroutine(parameters, result =>
+                            {
+                                time = result;
+                                doneEvent.Set();
+                            }));
+                        });
+                    }
+
+                    doneEvent.WaitOne();
+
+                    var resultObj = new { time = time };
+                    string response = JsonConvert.SerializeObject(resultObj) + "\n";
+                    byte[] sendData = Encoding.UTF8.GetBytes(response);
+                    stream.Write(sendData, 0, sendData.Length);
+                    stream.Flush();
                 }
-
-                // Wait until coroutine finishes
-                doneEvent.WaitOne();
-
-                // Send time back to Python
-                var resultObj = new { time = time };
-                string response = JsonConvert.SerializeObject(resultObj) + "\n";
-                byte[] sendData = Encoding.UTF8.GetBytes(response);
-                stream.Write(sendData, 0, sendData.Length);
-                stream.Flush();
+                catch
+                {
+                    break; // exit inner loop if client disconnects
+                }
             }
+
+            stream.Close();
+            client.Close();
+            Debug.Log("Client disconnected");
         }
     }
+
 
     private System.Collections.IEnumerator RunSimulationCoroutine(Dictionary<string, int[]> p, Action<float> callback)
     {

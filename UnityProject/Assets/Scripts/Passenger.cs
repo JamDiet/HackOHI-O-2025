@@ -18,7 +18,7 @@ public class Passenger : MonoBehaviour
     {
         //Framerate dependent but it's fine we ball
         if(active){
-            transform.localPosition /= 1.05f;
+            transform.localPosition /= 1.2f;
         }
     }
 

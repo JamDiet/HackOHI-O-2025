@@ -9,6 +9,7 @@ public class GeneratePath : MonoBehaviour
     public GameObject passengerPre;
     public Transform startNode;
     public Transform queueNode;
+    public int steps;
     public List<(Vector2 pos, int[] connectedSeats)> pathData;
     public List<Transform> waitingPassengers;
     public List<Passenger> activePassengers;
@@ -70,6 +71,7 @@ public class GeneratePath : MonoBehaviour
             SpawnPassenger(passengerSequence[i]);
         }
         bool active = true;
+        steps = 0;
         while(active){
             active = false;
             if(startNode.childCount == 0 && waitingPassengers.Count > 0){
@@ -84,15 +86,20 @@ public class GeneratePath : MonoBehaviour
                 }
             }
             
-            
-            yield return new WaitForSeconds(0f);
+            yield return new WaitForSeconds(0.1f);
+            steps += 1;
             
         }
+        // yield return new WaitForSeconds(0.1f);
+        // GameObject[] passengers = GameObject.FindGameObjectsWithTag("Passenger");
+        // for(int i = 0; i < passengers.Length; i++){
+        //     Destroy(passengers[i]);
+        // }
         Debug.Log("Finished!");
     }
 
     public float GetScore()
     {
-        return 7;
+        return steps;
     }
 }

@@ -60,7 +60,7 @@ class UnitySimulator:
 
             if ok:
                 # build list of contiguous index arrays in original order
-                result = [np.arange(starts[i], starts[i] + families[i], dtype=int) for i in range(len(families))]
+                result = [np.arange(starts[i] + 1, starts[i] + families[i] + 1, dtype=int) for i in range(len(families))]
                 self.family_indcs = result
                 print(f"Random placement succeeded on attempt {attempt+1}")
                 return self.family_indcs
@@ -74,7 +74,7 @@ class UnitySimulator:
             f = int(f)
             if cur + f > num_passengers:
                 raise RuntimeError("Failed to place families")
-            starts.append(np.arange(cur, cur + f, dtype=int))
+            starts.append(np.arange(cur + 1, cur + f + 1, dtype=int))
             cur += f
         
         self.family_indcs = starts
@@ -134,7 +134,7 @@ def order_by_weights(weight_arr: np.ndarray):
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
-    simulator.connect()
+    # simulator.connect()
 
     # Establish optimization conditions
     num_passengers = 20
@@ -146,8 +146,8 @@ if __name__ == '__main__':
     families = [5]
     simulator.get_family_indcs(num_passengers, families)
 
-    # print(simulator.family_indcs)
+    print(simulator.family_indcs)
 
     # Optimize and print best results
-    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
-    print(order_by_weights(res.x))
+    # res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
+    # print(order_by_weights(res.x))

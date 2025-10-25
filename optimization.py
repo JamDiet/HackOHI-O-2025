@@ -102,9 +102,9 @@ class UnitySimulator:
         
         return json.loads(message)
 
-    def objective(self, indices: np.ndarray, weight_arr: np.ndarray):
+    def objective(self, weight_arr: np.ndarray):
         # Convert weight array into int array of passenger numbers
-        passenger_sequence = order_by_weights(indices, weight_arr)
+        passenger_sequence = order_by_weights(self.current_class, weight_arr)
 
         loss = 0.
 

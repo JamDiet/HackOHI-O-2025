@@ -56,11 +56,16 @@ def order_by_weights(weight_arr: np.ndarray):
 
 
 if __name__ == '__main__':
+    # Initialize simulator
     simulator = UnitySimulator()
     simulator.connect()
 
+    # Establish optimization conditions
     num_passengers = 20
     x0 = np.array(range(1, num_passengers+1)) / num_passengers
     bounds = np.array([(0., 1.) for _ in range(num_passengers)])
+    maxiter = 10
 
-    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0)
+    # Optimize and print best results
+    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
+    print(order_by_weights(res.x))

@@ -9,6 +9,7 @@ public class GeneratePath : MonoBehaviour
     public GameObject passengerPre;
     public Transform startNode;
     public Transform queueNode;
+    public Transform tail;
     public int steps;
     public List<(Vector2 pos, int[] connectedSeats)> pathData;
     public List<Transform> waitingPassengers;
@@ -17,7 +18,7 @@ public class GeneratePath : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        PopulatePathData();
+        PopulatePathData(10);
         startNode = Instantiate(nodePre, Vector3.right * 3, Quaternion.identity).transform;
         startNode.GetComponent<PathNode>().attachedSeats = new List<(Transform node, int id)>();
         Transform lastNode = startNode;
@@ -39,19 +40,20 @@ public class GeneratePath : MonoBehaviour
             }
             lastNode = currentNode;
         }
-        StartCoroutine(RunSimulation(new int[] {1,2,3,4}));
+        StartCoroutine(RunSimulation(new int[] {20,18,16,14,12,10,8,6,4,2,19,17,15,13,11,9,7,5,3,1}));
     }
 
-    void PopulatePathData()
+    void PopulatePathData(int planeSize)
     {
         pathData = new List<(Vector2 pos, int[] connectedSeats)>();
         pathData.Add((new Vector2(2, 0), new int[] {}));
         pathData.Add((new Vector2(1, 0), new int[] {}));
         pathData.Add((new Vector2(0, 0), new int[] {}));
         pathData.Add((new Vector2(0, 1), new int[] {}));
-        for(int i = 1; i < 11; i++){
+        for(int i = 1; i < planeSize + 1; i++){
             pathData.Add((new Vector2(0, i + 1), new int[] {2 * i - 1, 2 * i}));
         }
+        tail.position = new Vector3(0, planeSize + 0.5f, 0);
     }
 
     void SpawnPassenger(int seat)
@@ -86,7 +88,7 @@ public class GeneratePath : MonoBehaviour
                 }
             }
             
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0f);
             steps += 1;
             
         }

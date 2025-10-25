@@ -47,20 +47,22 @@ public class NetworkHandler : MonoBehaviour
             NetworkStream stream = client.GetStream();
             Debug.Log("Client connected");
 
+            StreamReader reader = new StreamReader(stream, Encoding.UTF8);
+            StreamWriter writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+
             while (true)
             {
+                string line;
                 try
                 {
-                    byte[] buffer = new byte[4096];
-                    int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                    if (bytesRead == 0) break; // client disconnected
+                    line = reader.ReadLine(); // read until newline
+                    if (line == null) break; // client disconnected
 
-                    string json = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    var parameters = JsonConvert.DeserializeObject<Dictionary<string, int[]>>(json);
-
-                    AutoResetEvent doneEvent = new AutoResetEvent(false);
+                    var parameters = JsonConvert.DeserializeObject<Dictionary<string, int[]>>(line);
                     float time = 0f;
 
+                    // enqueue on main thread
+                    AutoResetEvent doneEvent = new AutoResetEvent(false);
                     lock (mainThreadActions)
                     {
                         mainThreadActions.Enqueue(() =>
@@ -72,18 +74,17 @@ public class NetworkHandler : MonoBehaviour
                             }));
                         });
                     }
-
                     doneEvent.WaitOne();
 
+                    // send back result
                     var resultObj = new { time = time };
-                    string response = JsonConvert.SerializeObject(resultObj) + "\n";
-                    byte[] sendData = Encoding.UTF8.GetBytes(response);
-                    stream.Write(sendData, 0, sendData.Length);
-                    stream.Flush();
+                    string response = JsonConvert.SerializeObject(resultObj);
+                    writer.WriteLine(response);
                 }
-                catch
+                catch (Exception e)
                 {
-                    break; // exit inner loop if client disconnects
+                    Debug.LogWarning($"Client message error: {e.Message}");
+                    break;
                 }
             }
 
@@ -91,6 +92,7 @@ public class NetworkHandler : MonoBehaviour
             client.Close();
             Debug.Log("Client disconnected");
         }
+
     }
 
 

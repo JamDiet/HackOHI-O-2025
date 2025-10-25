@@ -15,18 +15,21 @@ class UnitySimulator:
         print("Connected to Unity simulator")
         
     def simulate(self, passenger_sequence):
-        # Convert to JSON bytes
-        json_data = json.dumps(passenger_sequence.tolist())
-        json_bytes = json_data.encode('utf-8')
+        # Send with newline
+        json_data = json.dumps(passenger_sequence.tolist()) + "\n"
+        self.socket.sendall(json_data.encode('utf-8'))
         
-        # Send to Unity
-        self.socket.sendall(json_bytes)
+        # Receive until newline
+        while '\n' not in self.buffer:
+            chunk = self.socket.recv(4096).decode('utf-8')
+            if not chunk:
+                raise ConnectionError("Connection closed")
+            self.buffer += chunk
         
-        # Receive result
-        result_bytes = self.socket.recv(4096)
-
-        # Return simulation results
-        return json.loads(result_bytes.decode('utf-8'))
+        # Extract one complete message
+        message, self.buffer = self.buffer.split('\n', 1)
+        
+        return json.loads(message)
 
     def objective(self, weight_arr: np.ndarray):
         # Convert weight array into int array of passenger numbers

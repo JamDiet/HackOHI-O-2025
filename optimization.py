@@ -3,6 +3,12 @@ import socket
 import json
 import numpy as np
 import multiprocessing as mp
+
+
+class BoardingClass():
+    def __init__(self, indices: list, families: list):
+        self.indices = indices
+        self.families = families
     
 
 class UnitySimulator:
@@ -129,6 +135,28 @@ class UnitySimulator:
         if self.socket:
             self.socket.close()
 
+    def run_optimizer_on_class(self,
+                            class_data: list):
+        """Each process runs its own optimizer"""
+        class_id, data = class_data
+        num_passengers = data.shape[0]
+
+        self.current_class = data.indices
+        self.get_family_indcs(num_passengers, data.families)
+
+        x0 = np.array(range(1, num_passengers+1)) / num_passengers
+        bounds = np.array([(0., 1.) for _ in range(num_passengers)])
+        
+        result = differential_evolution(
+            self.objective,
+            x0=x0,
+            bounds=bounds,
+            workers=1,  # Each optimizer uses 1 worker
+            maxiter=10
+        )
+        
+        return class_id, result.x, result.fun
+
 
 def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
     '''
@@ -138,31 +166,6 @@ def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
     return np.array([indices[i] for i in idx_order])
 
 
-def run_optimizer_on_class(simulator: UnitySimulator,
-                           class_data: list,
-                           families: list,
-                           maxiter: int=100):
-    """Each process runs its own optimizer"""
-    class_id, data = class_data
-    num_passengers = data.shape[0]
-
-    simulator.current_class = data
-    simulator.get_family_indcs(num_passengers, families)
-
-    x0 = np.array(range(1, num_passengers+1)) / num_passengers
-    bounds = np.array([(0., 1.) for _ in range(num_passengers)])
-    
-    result = differential_evolution(
-        simulator.objective,
-        x0=x0,
-        bounds=bounds,
-        workers=1,  # Each optimizer uses 1 worker
-        maxiter=maxiter
-    )
-    
-    return class_id, result.x, result.fun
-
-
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
@@ -170,15 +173,14 @@ if __name__ == '__main__':
 
     # Establish optimization conditions
     num_passengers = 20
-    maxiter = 10
 
     # Establish classes and which seats
     classes = [np.arange(1, 11), np.arange(11, 21)]
+    boarding_groups = [BoardingClass(c, [5]) for c in classes]
     class_data = [(i, c) for i, c in enumerate(classes)]
 
     with mp.Pool(processes=len(classes)) as pool:
-        results = pool.map(run_optimizer_on_class, class_data)
-
+        results = pool.map(simulator.run_optimizer_on_class, class_data)
 
     # # Optimize and print best results
     # order = []

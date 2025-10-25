@@ -134,7 +134,7 @@ def order_by_weights(weight_arr: np.ndarray):
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
-    # simulator.connect()
+    simulator.connect()
 
     # Establish optimization conditions
     num_passengers = 20
@@ -146,8 +146,8 @@ if __name__ == '__main__':
     families = [5]
     simulator.get_family_indcs(num_passengers, families)
 
-    print(simulator.family_indcs)
+    # print(simulator.family_indcs)
 
     # Optimize and print best results
-    # res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
-    # print(order_by_weights(res.x))
+    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
+    print(order_by_weights(res.x))

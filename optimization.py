@@ -2,6 +2,7 @@ from scipy.optimize import differential_evolution
 import socket
 import json
 import numpy as np
+import multiprocessing as mp
     
 
 class UnitySimulator:
@@ -12,7 +13,7 @@ class UnitySimulator:
         self.family_indcs = None
         self.current_class = None
 
-    def get_family_indcs(self, num_passengers: int, families: np.ndarray):
+    def get_family_indcs(self, num_passengers: int, families: list):
         """
         Place families (groups) into contiguous passenger indices.
 
@@ -137,6 +138,31 @@ def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
     return np.array([indices[i] for i in idx_order])
 
 
+def run_optimizer_on_class(simulator: UnitySimulator,
+                           class_data: list,
+                           families: list,
+                           maxiter: int=100):
+    """Each process runs its own optimizer"""
+    class_id, data = class_data
+    num_passengers = data.shape[0]
+
+    simulator.current_class = data
+    simulator.get_family_indcs(num_passengers, families)
+
+    x0 = np.array(range(1, num_passengers+1)) / num_passengers
+    bounds = np.array([(0., 1.) for _ in range(num_passengers)])
+    
+    result = differential_evolution(
+        simulator.objective,
+        x0=x0,
+        bounds=bounds,
+        workers=1,  # Each optimizer uses 1 worker
+        maxiter=maxiter
+    )
+    
+    return class_id, result.x, result.fun
+
+
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
@@ -148,17 +174,22 @@ if __name__ == '__main__':
 
     # Establish classes and which seats
     classes = [np.arange(1, 11), np.arange(11, 21)]
+    class_data = [(i, c) for i, c in enumerate(classes)]
 
-    # Optimize and print best results
-    order = []
-    for c in classes:
-        simulator.current_class = c
-        x0 = np.array(range(1, c.shape[0]+1)) / c.shape[0]
-        bounds = np.array([(0., 1.) for _ in range(c.shape[0])])
+    with mp.Pool(processes=len(classes)) as pool:
+        results = pool.map(run_optimizer_on_class, class_data)
 
-        # Establish families and family indices
-        families = [5]
-        simulator.get_family_indcs(c.shape[0], families)
 
-        res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
-        order.append(order_by_weights(c, res.x))
+    # # Optimize and print best results
+    # order = []
+    # for c in classes:
+    #     simulator.current_class = c
+    #     x0 = np.array(range(1, c.shape[0]+1)) / c.shape[0]
+    #     bounds = np.array([(0., 1.) for _ in range(c.shape[0])])
+
+    #     # Establish families and family indices
+    #     families = [5]
+    #     simulator.get_family_indcs(c.shape[0], families)
+
+    #     res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
+    #     order.append(order_by_weights(c, res.x))

@@ -14,34 +14,33 @@ class UnitySimulator:
         self.socket.connect((self.host, self.port))
         print("Connected to Unity simulator")
 
-    def recv_json(self):
+    def recv_json(sock):
         data = b""
         while not data.endswith(b"\n"):
-            part = self.socket.recv(4096)
+            part = sock.recv(4096)
             if not part:
                 raise ConnectionError("Socket closed before JSON received")
             data += part
         return json.loads(data.decode('utf-8'))
 
     def simulate(self, passenger_sequence):
-        # Always send newline-terminated JSON
+        # Convert to JSON bytes
         data = {"passenger_sequence": passenger_sequence.tolist()}
-        json_bytes = (json.dumps(data) + "\n").encode('utf-8')
+        json_bytes = json.dumps(data).encode('utf-8')
+        
+        # Send to Unity
         self.socket.sendall(json_bytes)
-
-        # Receive JSON from Unity
-        result = self.recv_json()
-        print("Finished! Result:", result)
-
-        return float(result['time'])
+        
+        # Receive result
+        result_bytes = self.socket.recv(4096)
+        result = simulator.recv_json(self.socket)
+        print("Result received!")
+        
+        return result['time']
 
     def objective(self, weight_arr: np.ndarray):
-        try:
-            passenger_sequence = order_by_weights(weight_arr)
-            return self.simulate(passenger_sequence)
-        except Exception as e:
-            print("Objective error:", e)
-            return np.inf
+        passenger_sequence = order_by_weights(weight_arr)
+        return self.simulate(passenger_sequence)
     
     def close(self):
         if self.socket:

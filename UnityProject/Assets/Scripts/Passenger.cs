@@ -23,8 +23,11 @@ public class Passenger : MonoBehaviour
     }
 
     // Update is called once per frame
-    public void Tick()
+    public bool Tick()
     {
+        if(seated){
+            return false;
+        }
         if(!seated && busyTicks == 0){
             Transform currentNode = transform.parent;
             PathNode nodeScript = currentNode.GetComponent<PathNode>();
@@ -45,6 +48,6 @@ public class Passenger : MonoBehaviour
                 seated = true;
             }
         }
-        
+        return true;
     }
 }

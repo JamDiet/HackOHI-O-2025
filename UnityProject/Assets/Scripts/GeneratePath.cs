@@ -38,7 +38,7 @@ public class GeneratePath : MonoBehaviour
             }
             lastNode = currentNode;
         }
-        StartCoroutine(RunSimulation());
+        StartCoroutine(RunSimulation(new int[] {1,2,3,4}));
     }
 
     void PopulatePathData()
@@ -48,7 +48,7 @@ public class GeneratePath : MonoBehaviour
         pathData.Add((new Vector2(1, 0), new int[] {}));
         pathData.Add((new Vector2(0, 0), new int[] {}));
         pathData.Add((new Vector2(0, 1), new int[] {}));
-        for(int i = 1; i < 31; i++){
+        for(int i = 1; i < 11; i++){
             pathData.Add((new Vector2(0, i + 1), new int[] {2 * i - 1, 2 * i}));
         }
     }
@@ -64,27 +64,35 @@ public class GeneratePath : MonoBehaviour
         passengerScript.active = false;
     }
 
-    public IEnumerator RunSimulation()
+    public IEnumerator RunSimulation(int[] passengerSequence)
     {
-        SpawnPassenger(1);
-        SpawnPassenger(3);
-        for(int i = 0; i < 120; i++){
-            SpawnPassenger(Random.Range(1,60));
+        for(int i = 0; i < passengerSequence.Length; i++){
+            SpawnPassenger(passengerSequence[i]);
         }
-        SpawnPassenger(4);
-        while(true){
-            foreach(Passenger passenger in activePassengers){
-                passenger.Tick();
-            }
+        bool active = true;
+        while(active){
+            active = false;
             if(startNode.childCount == 0 && waitingPassengers.Count > 0){
                 waitingPassengers[0].parent = startNode;
                 waitingPassengers[0].GetComponent<Passenger>().active = true;
                 activePassengers.Add(waitingPassengers[0].GetComponent<Passenger>());
                 waitingPassengers.RemoveAt(0);
             }
+            foreach(Passenger passenger in activePassengers){
+                if(passenger.Tick()){
+                    active = true;
+                }
+            }
+            
             
             yield return new WaitForSeconds(0f);
             
         }
+        Debug.Log("Finished!");
+    }
+
+    public float GetScore()
+    {
+        return 7;
     }
 }

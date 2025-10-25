@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class Passenger : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class Passenger : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        transform.GetChild(0).GetComponent<TextMeshPro>().text = assignedSeat.ToString();
     }
 
     void Update()

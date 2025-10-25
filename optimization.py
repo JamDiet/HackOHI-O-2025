@@ -9,6 +9,7 @@ class UnitySimulator:
         self.host = host
         self.port = port
         self.socket = None
+        self.family_indcs = None
 
     def get_family_indcs(self, num_passengers: int, families: np.ndarray):
         """
@@ -58,11 +59,14 @@ class UnitySimulator:
                 starts[idx] = start
 
             if ok:
-                # build and return list of contiguous index arrays in original order
+                # build list of contiguous index arrays in original order
                 result = [np.arange(starts[i], starts[i] + families[i], dtype=int) for i in range(len(families))]
-                return result
+                self.family_indcs = result
+                print(f"Random placement succeeded on attempt {attempt+1}")
+                return self.family_indcs
 
         # If we exhaust attempts, fall back to deterministic packing (left-to-right)
+        print("Random placement failed after all attempts, using fallback")
         mask = np.zeros(num_passengers, dtype=bool)
         starts = []
         cur = 0
@@ -139,8 +143,10 @@ if __name__ == '__main__':
     maxiter = 10
 
     # Establish families and family indices
-    families = np.array([5])
+    families = [5]
     simulator.get_family_indcs(num_passengers, families)
+
+    # print(simulator.family_indcs)
 
     # Optimize and print best results
     res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)

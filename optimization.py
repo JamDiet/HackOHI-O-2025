@@ -84,23 +84,27 @@ class UnitySimulator:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
         print("Connected to Unity simulator")
-        
+    
+    def recv_json(self):
+        data = b""
+        while not data.endswith(b"\n"):
+            part = self.socket.recv(4096)
+            if not part:
+                raise ConnectionError("Socket closed before JSON received")
+            data += part
+        return json.loads(data.decode('utf-8'))
+
     def simulate(self, passenger_sequence):
-        # Send with newline
-        json_data = json.dumps(passenger_sequence.tolist()) + "\n"
-        self.socket.sendall(json_data.encode('utf-8'))
-        
-        # Receive until newline
-        while '\n' not in self.buffer:
-            chunk = self.socket.recv(4096).decode('utf-8')
-            if not chunk:
-                raise ConnectionError("Connection closed")
-            self.buffer += chunk
-        
-        # Extract one complete message
-        message, self.buffer = self.buffer.split('\n', 1)
-        
-        return json.loads(message)
+        # Always send newline-terminated JSON
+        data = {"passenger_sequence": passenger_sequence.tolist()}
+        json_bytes = (json.dumps(data) + "\n").encode('utf-8')
+        self.socket.sendall(json_bytes)
+
+        # Receive JSON from Unity
+        result = self.recv_json()
+        print("Finished! Result:", result)
+
+        return float(result['time'])
 
     def objective(self, weight_arr: np.ndarray):
         # Convert weight array into int array of passenger numbers
@@ -136,7 +140,7 @@ def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
-    simulator.connect()
+    # simulator.connect()
 
     # Establish optimization conditions
     num_passengers = 20

@@ -10,6 +10,7 @@ class UnitySimulator:
         self.port = port
         self.socket = None
         self.family_indcs = None
+        self.current_class = None
 
     def get_family_indcs(self, num_passengers: int, families: np.ndarray):
         """
@@ -101,9 +102,9 @@ class UnitySimulator:
         
         return json.loads(message)
 
-    def objective(self, weight_arr: np.ndarray):
+    def objective(self, indices: np.ndarray, weight_arr: np.ndarray):
         # Convert weight array into int array of passenger numbers
-        passenger_sequence = order_by_weights(weight_arr)
+        passenger_sequence = order_by_weights(indices, weight_arr)
 
         loss = 0.
 
@@ -124,11 +125,12 @@ class UnitySimulator:
             self.socket.close()
 
 
-def order_by_weights(weight_arr: np.ndarray):
+def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
     '''
     Order passenger seat numbers by the weight attributed to each seat.
     '''
-    return np.argsort(weight_arr) + np.ones(weight_arr.shape, dtype=int)
+    idx_order =  np.argsort(weight_arr)
+    return np.array([indices[i] for i in idx_order])
 
 
 if __name__ == '__main__':
@@ -146,8 +148,12 @@ if __name__ == '__main__':
     families = [5]
     simulator.get_family_indcs(num_passengers, families)
 
-    # print(simulator.family_indcs)
+    # Establish classes and which seats
+    classes = np.array([range(1, 11), range(11, 21)])
 
     # Optimize and print best results
-    res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
-    print(order_by_weights(res.x))
+    order = []
+    for c in classes:
+        simulator.current_class = c
+        res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
+        order.append(order_by_weights(c, res.x))

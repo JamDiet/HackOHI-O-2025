@@ -140,13 +140,7 @@ if __name__ == '__main__':
 
     # Establish optimization conditions
     num_passengers = 20
-    x0 = np.array(range(1, num_passengers+1)) / num_passengers
-    bounds = np.array([(0., 1.) for _ in range(num_passengers)])
     maxiter = 10
-
-    # Establish families and family indices
-    families = [5]
-    simulator.get_family_indcs(num_passengers, families)
 
     # Establish classes and which seats
     classes = np.array([range(1, 11), range(11, 21)])
@@ -155,5 +149,12 @@ if __name__ == '__main__':
     order = []
     for c in classes:
         simulator.current_class = c
+        x0 = np.array(range(1, c.shape[0]+1)) / c.shape[0]
+        bounds = np.array([(0., 1.) for _ in range(c.shape[0])])
+
+        # Establish families and family indices
+        families = [5]
+        simulator.get_family_indcs(c.shape[0], families)
+
         res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
         order.append(order_by_weights(c, res.x))

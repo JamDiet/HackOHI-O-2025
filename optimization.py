@@ -169,7 +169,7 @@ def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
-    simulator.connect()
+    # simulator.connect()
 
     # Establish optimization conditions
     num_passengers = 20
@@ -177,10 +177,10 @@ if __name__ == '__main__':
     # Establish classes and which seats
     classes = [np.arange(1, 11), np.arange(11, 21)]
     boarding_groups = [BoardingClass(c, [5]) for c in classes]
-    class_data = [(i, c) for i, c in enumerate(classes)]
+    class_data = [(i, c) for i, c in enumerate(boarding_groups)]
 
-    with mp.Pool(processes=len(classes)) as pool:
-        results = pool.map(simulator.run_optimizer_on_class, class_data)
+    # with mp.Pool(processes=len(classes)) as pool:
+    #     results = pool.map(simulator.run_optimizer_on_class, class_data)
 
     # # Optimize and print best results
     # order = []

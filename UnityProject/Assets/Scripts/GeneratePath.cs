@@ -12,6 +12,7 @@ public class GeneratePath : MonoBehaviour
     public Transform queueNode;
     public Transform tail;
     public int steps;
+    public int iterations;
     public int[] timePerPassenger;
     public List<(Vector2 pos, int[] connectedSeats)> pathData;
     public List<Passenger> allPassengers;
@@ -77,6 +78,7 @@ public class GeneratePath : MonoBehaviour
 
     public IEnumerator RunSimulation(int[] passengerSequence)
     {
+        iterations += 1;
         allPassengers.Clear();
         for(int i = 0; i < passengerSequence.Length; i++){
             SpawnPassenger(passengerSequence[i]);
@@ -97,11 +99,11 @@ public class GeneratePath : MonoBehaviour
                 }
             }
             
-            yield return new WaitForSeconds(0f);
+            //yield return new WaitForSeconds(0.1f);
             steps += 1;
             
         }
-        //yield return new WaitForSeconds(0.1f);
+        yield return 0;
         timePerPassenger = new int[allPassengers.Count];
         for(int i = 0; i < allPassengers.Count; i++){
             timePerPassenger[i] = allPassengers[i].time;
@@ -110,6 +112,7 @@ public class GeneratePath : MonoBehaviour
         for(int i = 0; i < passengers.Length; i++){
             Destroy(passengers[i]);
         }
+        Debug.Log(Time.realtimeSinceStartup);
     }
 
     public (int time, int[] timePerPassenger) GetScore()

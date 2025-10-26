@@ -19,7 +19,7 @@ public class Passenger : MonoBehaviour
     // {
     //     //Framerate dependent but it's fine we ball
     //     if(active){
-    //         transform.localPosition = 1.05f;
+    //         transform.localPosition /= 1.05f;
     //     }
     // }
 
@@ -28,8 +28,7 @@ public class Passenger : MonoBehaviour
     {
         if(seated){
             return false;
-        }
-        if(!seated && busyTicks == 0){
+        } else if(busyTicks == 0){
             time += 1;
             Transform currentNode = transform.parent;
             PathNode nodeScript = currentNode.GetComponent<PathNode>();
@@ -42,8 +41,7 @@ public class Passenger : MonoBehaviour
             if(busyTicks == 0 && nodeScript.nextNode.childCount == 0){
                 transform.parent = nodeScript.nextNode;
             }
-            //transform.localPosition = Vector3.zero;
-        } else if(busyTicks > 0){
+        } else {
             busyTicks -= 1;
             if(busyTicks == 0){
                 transform.parent = target;

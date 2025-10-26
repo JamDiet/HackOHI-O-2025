@@ -19,73 +19,73 @@ class UnitySimulator:
         self.family_indcs = None
         self.current_class = None
 
-    def get_family_indcs(self, num_passengers: int, families: list):
-        """
-        Place families (groups) into contiguous passenger indices.
+    # def get_family_indcs(self, num_passengers: int, families: list):
+    #     """
+    #     Place families (groups) into contiguous passenger indices.
 
-        Args:
-            num_passengers: total number of seats (indices 0..num_passengers-1)
-            families: 1D array-like of family sizes (integers)
+    #     Args:
+    #         num_passengers: total number of seats (indices 0..num_passengers-1)
+    #         families: 1D array-like of family sizes (integers)
 
-        Returns:
-            A list of numpy integer arrays; each element contains the contiguous
-            seat indices assigned to the corresponding family in the same order
-            as `families`.
+    #     Returns:
+    #         A list of numpy integer arrays; each element contains the contiguous
+    #         seat indices assigned to the corresponding family in the same order
+    #         as `families`.
 
-        Raises:
-            ValueError: if sum(families) > num_passengers or any family <= 0.
-        """
-        families = np.asarray(families, dtype=int)
-        if np.any(families <= 0):
-            raise ValueError("All family sizes must be positive integers")
-        if families.sum() > num_passengers:
-            raise ValueError("Not enough seats for all families")
+    #     Raises:
+    #         ValueError: if sum(families) > num_passengers or any family <= 0.
+    #     """
+    #     families = np.asarray(families, dtype=int)
+    #     if np.any(families <= 0):
+    #         raise ValueError("All family sizes must be positive integers")
+    #     if families.sum() > num_passengers:
+    #         raise ValueError("Not enough seats for all families")
 
-        rng = np.random.default_rng()
+    #     rng = np.random.default_rng()
 
-        # Try greedy randomized placement with a limited number of attempts.
-        max_attempts = 1000
-        for attempt in range(max_attempts):
-            mask = np.zeros(num_passengers, dtype=bool)
-            starts = [None] * len(families)
-            order = list(range(len(families)))
-            rng.shuffle(order)
-            ok = True
-            for idx in order:
-                f = int(families[idx])
-                # find all start positions where f seats are free
-                candidates = []
-                last_start = num_passengers - f
-                for s in range(0, last_start + 1):
-                    if not mask[s:s+f].any():
-                        candidates.append(s)
-                if not candidates:
-                    ok = False
-                    break
-                start = rng.choice(candidates)
-                mask[start:start+f] = True
-                starts[idx] = start
+    #     # Try greedy randomized placement with a limited number of attempts.
+    #     max_attempts = 1000
+    #     for attempt in range(max_attempts):
+    #         mask = np.zeros(num_passengers, dtype=bool)
+    #         starts = [None] * len(families)
+    #         order = list(range(len(families)))
+    #         rng.shuffle(order)
+    #         ok = True
+    #         for idx in order:
+    #             f = int(families[idx])
+    #             # find all start positions where f seats are free
+    #             candidates = []
+    #             last_start = num_passengers - f
+    #             for s in range(0, last_start + 1):
+    #                 if not mask[s:s+f].any():
+    #                     candidates.append(s)
+    #             if not candidates:
+    #                 ok = False
+    #                 break
+    #             start = rng.choice(candidates)
+    #             mask[start:start+f] = True
+    #             starts[idx] = start
 
-            if ok:
-                # build list of contiguous index arrays in original order
-                result = [np.arange(starts[i] + 1, starts[i] + families[i] + 1, dtype=int) for i in range(len(families))]
-                self.family_indcs = result
-                print(f"Random placement succeeded on attempt {attempt+1}")
-                return self.family_indcs
+    #         if ok:
+    #             # build list of contiguous index arrays in original order
+    #             result = [np.arange(starts[i] + 1, starts[i] + families[i] + 1, dtype=int) for i in range(len(families))]
+    #             self.family_indcs = result
+    #             print(f"Random placement succeeded on attempt {attempt+1}")
+    #             return self.family_indcs
 
-        # If we exhaust attempts, fall back to deterministic packing (left-to-right)
-        print("Random placement failed after all attempts, using fallback")
-        mask = np.zeros(num_passengers, dtype=bool)
-        starts = []
-        cur = 0
-        for f in families:
-            f = int(f)
-            if cur + f > num_passengers:
-                raise RuntimeError("Failed to place families")
-            starts.append(np.arange(cur + 1, cur + f + 1, dtype=int))
-            cur += f
+        # # If we exhaust attempts, fall back to deterministic packing (left-to-right)
+        # print("Random placement failed after all attempts, using fallback")
+        # mask = np.zeros(num_passengers, dtype=bool)
+        # starts = []
+        # cur = 0
+        # for f in families:
+        #     f = int(f)
+        #     if cur + f > num_passengers:
+        #         raise RuntimeError("Failed to place families")
+        #     starts.append(np.arange(cur + 1, cur + f + 1, dtype=int))
+        #     cur += f
         
-        self.family_indcs = starts
+        # self.family_indcs = starts
         
     def connect(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -135,14 +135,13 @@ class UnitySimulator:
         if self.socket:
             self.socket.close()
 
-    def run_optimizer_on_class(self,
-                            class_data: list):
+    def run_optimizer_on_class(self, class_data):
         """Each process runs its own optimizer"""
         class_id, data = class_data
         num_passengers = data.shape[0]
 
         self.current_class = data.indices
-        self.get_family_indcs(num_passengers, data.families)
+        self.family_indcs = data.families
 
         x0 = np.array(range(1, num_passengers+1)) / num_passengers
         bounds = np.array([(0., 1.) for _ in range(num_passengers)])
@@ -169,29 +168,20 @@ def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
-    # simulator.connect()
+    simulator.connect()
 
     # Establish optimization conditions
     num_passengers = 20
 
     # Establish classes and which seats
     classes = [np.arange(1, 11), np.arange(11, 21)]
-    boarding_groups = [BoardingClass(c, [5]) for c in classes]
+    boarding_groups = [BoardingClass(indices=c, families=None) for c in classes]
+
+    for i, c in enumerate(boarding_groups):
+        c.families = np.arange(i*10+1, i*10+11)
+
     class_data = [(i, c) for i, c in enumerate(boarding_groups)]
 
-    # with mp.Pool(processes=len(classes)) as pool:
-    #     results = pool.map(simulator.run_optimizer_on_class, class_data)
-
-    # # Optimize and print best results
-    # order = []
-    # for c in classes:
-    #     simulator.current_class = c
-    #     x0 = np.array(range(1, c.shape[0]+1)) / c.shape[0]
-    #     bounds = np.array([(0., 1.) for _ in range(c.shape[0])])
-
-    #     # Establish families and family indices
-    #     families = [5]
-    #     simulator.get_family_indcs(c.shape[0], families)
-
-    #     res = differential_evolution(simulator.objective, bounds=bounds, x0=x0, maxiter=maxiter)
-    #     order.append(order_by_weights(c, res.x))
+    for c in class_data:
+        class_id, data = c
+        simulator.run_optimizer_on_class(c)

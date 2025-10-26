@@ -7,6 +7,7 @@ public class GeneratePath : MonoBehaviour
     public GameObject nodePre;
     public GameObject seatPre;
     public GameObject passengerPre;
+    public GameObject wingPre;
     public Transform startNode;
     public Transform queueNode;
     public Transform tail;
@@ -18,7 +19,7 @@ public class GeneratePath : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        PopulatePathData(10);
+        PopulatePathData(20);
         startNode = Instantiate(nodePre, Vector3.right * 3, Quaternion.identity).transform;
         startNode.GetComponent<PathNode>().attachedSeats = new List<(Transform node, int id)>();
         Transform lastNode = startNode;
@@ -53,7 +54,11 @@ public class GeneratePath : MonoBehaviour
         for(int i = 1; i < planeSize + 1; i++){
             pathData.Add((new Vector2(0, i + 1), new int[] {2 * i - 1, 2 * i}));
         }
-        tail.position = new Vector3(0, planeSize + 0.5f, 0);
+        tail.position = new Vector3(0, planeSize + 1.5f, 0);
+        GameObject leftWing = Instantiate(wingPre, new Vector3(-3, planeSize / 2 + 2, 0), Quaternion.identity);
+        leftWing.transform.localScale = Vector3.one * planeSize / 15;
+        GameObject rightWing = Instantiate(wingPre, new Vector3(3, planeSize / 2 + 2, 0), Quaternion.Euler(0, 180, 0));
+        rightWing.transform.localScale = Vector3.one * planeSize / 15;
     }
 
     void SpawnPassenger(int seat)
@@ -88,7 +93,7 @@ public class GeneratePath : MonoBehaviour
                 }
             }
             
-            yield return new WaitForSeconds(0f);
+            yield return new WaitForSeconds(0.1f);
             steps += 1;
             
         }

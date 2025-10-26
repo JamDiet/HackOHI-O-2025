@@ -169,7 +169,7 @@ def order_by_weights(indices: np.ndarray, weight_arr: np.ndarray):
 if __name__ == '__main__':
     # Initialize simulator
     simulator = UnitySimulator()
-    # simulator.connect()
+    simulator.connect()
 
     # Establish optimization conditions
     num_passengers = 20

@@ -59,8 +59,8 @@ public class NetworkHandler : MonoBehaviour
                     if (line == null) break; // client disconnected
 
                     var parameters = JsonConvert.DeserializeObject<Dictionary<string, int[]>>(line);
-                    float time = 0f;
-                    float[] timePerPassenger = new float[] {};
+                    int time = 0;
+                    int[] timePerPassenger = new int[] {};
 
                     // enqueue on main thread
                     AutoResetEvent doneEvent = new AutoResetEvent(false);
@@ -98,13 +98,13 @@ public class NetworkHandler : MonoBehaviour
     }
 
 
-    private System.Collections.IEnumerator RunSimulationCoroutine(Dictionary<string, int[]> p, Action<(float time, float[] timePerPassenger)> callback)
+    private System.Collections.IEnumerator RunSimulationCoroutine(Dictionary<string, int[]> p, Action<(int time, int[] timePerPassenger)> callback)
     {
         // Run your coroutine on the main thread
         yield return StartCoroutine(pathGenerator.RunSimulation(p["passenger_sequence"]));
 
         // Once finished, get time from pathGenerator
-        (float time, float[] timePerPassenger) score = pathGenerator.GetScore(); // implement this in your GeneratePath class
+        (int time, int[] timePerPassenger) score = pathGenerator.GetScore(); // implement this in your GeneratePath class
         callback?.Invoke(score);
     }
 

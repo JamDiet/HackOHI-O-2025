@@ -8,7 +8,7 @@ public class Passenger : MonoBehaviour
     public Transform target;
     public bool seated;
     public bool active;
-    public float time;
+    public int time;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

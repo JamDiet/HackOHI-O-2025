@@ -299,13 +299,11 @@ if __name__ == '__main__':
     family_1 = np.arange(1, 6)
     family_2 = np.arange(11, 16)
     family_3 = np.arange(21, 26)
-    seat_num_array = seat_num_array[~np.isin(seat_num_array, np.concatenate((family_1, family_2, family_3)))]
 
     # Generate 3 random class arrays
-    class_1 = np.concatenate((np.random.choice(seat_num_array, 5), family_1))
-    seat_num_array = seat_num_array[~np.isin(seat_num_array, class_1)]
-    class_2 = np.concatenate((np.random.choice(seat_num_array, 5), family_2))
-    class_3 = np.concatenate((seat_num_array[~np.isin(seat_num_array, class_2)], family_3))
+    class_1 = np.arange(1, 11)
+    class_2 = np.arange(11, 21)
+    class_3 = np.arange(21, 31)
 
     classes = [class_1, class_2, class_3]
     boarding_groups = [BoardingClass(indices=c, families=None) for c in classes]

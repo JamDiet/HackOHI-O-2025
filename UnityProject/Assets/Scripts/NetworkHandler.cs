@@ -60,6 +60,7 @@ public class NetworkHandler : MonoBehaviour
 
                     var parameters = JsonConvert.DeserializeObject<Dictionary<string, int[]>>(line);
                     float time = 0f;
+                    float[] timePerPassenger = new float[] {};
 
                     // enqueue on main thread
                     AutoResetEvent doneEvent = new AutoResetEvent(false);
@@ -69,7 +70,8 @@ public class NetworkHandler : MonoBehaviour
                         {
                             StartCoroutine(RunSimulationCoroutine(parameters, result =>
                             {
-                                time = result;
+                                time = result.time;
+                                timePerPassenger = result.timePerPassenger;
                                 doneEvent.Set();
                             }));
                         });
@@ -77,7 +79,7 @@ public class NetworkHandler : MonoBehaviour
                     doneEvent.WaitOne();
 
                     // send back result
-                    var resultObj = new { time = time };
+                    var resultObj = new { time = time, time_per_passenger = timePerPassenger };
                     string response = JsonConvert.SerializeObject(resultObj);
                     writer.WriteLine(response);
                 }
@@ -96,13 +98,13 @@ public class NetworkHandler : MonoBehaviour
     }
 
 
-    private System.Collections.IEnumerator RunSimulationCoroutine(Dictionary<string, int[]> p, Action<float> callback)
+    private System.Collections.IEnumerator RunSimulationCoroutine(Dictionary<string, int[]> p, Action<(float time, float[] timePerPassenger)> callback)
     {
         // Run your coroutine on the main thread
         yield return StartCoroutine(pathGenerator.RunSimulation(p["passenger_sequence"]));
 
         // Once finished, get time from pathGenerator
-        float score = pathGenerator.GetScore(); // implement this in your GeneratePath class
+        (float time, float[] timePerPassenger) score = pathGenerator.GetScore(); // implement this in your GeneratePath class
         callback?.Invoke(score);
     }
 

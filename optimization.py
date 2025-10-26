@@ -299,7 +299,7 @@ if __name__ == '__main__':
     family_1 = np.arange(1, 6)
     family_2 = np.arange(11, 16)
     family_3 = np.arange(21, 26)
-    seat_num_array = seat_num_array[~np.isin(np.concatenate((family_1, family_2, family_3)))]
+    seat_num_array = seat_num_array[~np.isin(seat_num_array, np.concatenate((family_1, family_2, family_3)))]
 
     # Generate 3 random class arrays
     class_1 = np.concatenate((np.random.choice(seat_num_array, 5), family_1))

@@ -15,13 +15,13 @@ public class Passenger : MonoBehaviour
         transform.GetChild(0).GetComponent<TextMeshPro>().text = assignedSeat.ToString();
     }
 
-    // void Update()
-    // {
-    //     //Framerate dependent but it's fine we ball
-    //     if(active){
-    //         transform.localPosition /= 1.05f;
-    //     }
-    // }
+    void Update()
+    {
+        //Framerate dependent but it's fine we ball
+        if(active){
+            transform.localPosition /= 1.05f;
+        }
+    }
 
     // Update is called once per frame
     public bool Tick()
@@ -48,7 +48,7 @@ public class Passenger : MonoBehaviour
                 seated = true;
             }
         }
-        transform.localPosition = Vector3.zero;
+        //transform.localPosition = Vector3.zero;
         return true;
     }
 }

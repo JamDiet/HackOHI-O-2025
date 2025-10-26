@@ -8,7 +8,8 @@ for i in range(3):
     boarding_order.append(order_by_weights(np.arange(i*10+1, i*10+11), weights))
 boarding_order = np.concatenate(tuple(boarding_order))
 
+print(boarding_order)
 # Run simulation
-simulator = UnitySimulator()
-simulator.connect()
-simulator.simulate(boarding_order)
+# simulator = UnitySimulator()
+# simulator.connect()
+# simulator.simulate(boarding_order)

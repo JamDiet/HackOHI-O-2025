@@ -22,7 +22,7 @@ public class GeneratePath : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        PopulatePathData(20);
+        PopulatePathData(500);
         startNode = Instantiate(nodePre, Vector3.right * 3, Quaternion.identity).transform;
         startNode.GetComponent<PathNode>().attachedSeats = new List<(Transform node, int id)>();
         Transform lastNode = startNode;
@@ -44,7 +44,8 @@ public class GeneratePath : MonoBehaviour
             }
             lastNode = currentNode;
         }
-        StartCoroutine(RunSimulation(new int[] {20,18,16,14,12,10,8,6,4,2,19,17,15,13,11,9,7,5,3,1}));
+        StartCoroutine(RunSimulation(new int[] {2, 3, 9, 5, 4, 10, 7, 1, 8, 6, 11, 15, 16, 19, 20, 12, 14, 18, 13, 17, 27, 28, 29, 22,
+ 30, 23, 25, 21, 26, 24}));
     }
 
     void PopulatePathData(int planeSize)
@@ -99,7 +100,7 @@ public class GeneratePath : MonoBehaviour
                 }
             }
             
-            //yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.1f);
             steps += 1;
             
         }

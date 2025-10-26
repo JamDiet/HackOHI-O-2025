@@ -93,7 +93,7 @@ public class GeneratePath : MonoBehaviour
                 }
             }
             
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0f);
             steps += 1;
             
         }

@@ -8,19 +8,20 @@ public class Passenger : MonoBehaviour
     public Transform target;
     public bool seated;
     public bool active;
+    public int time;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         transform.GetChild(0).GetComponent<TextMeshPro>().text = assignedSeat.ToString();
     }
 
-    void Update()
-    {
-        //Framerate dependent but it's fine we ball
-        if(active){
-            transform.localPosition /= 1.05f;
-        }
-    }
+    // void Update()
+    // {
+    //     //Framerate dependent but it's fine we ball
+    //     if(active){
+    //         transform.localPosition = 1.05f;
+    //     }
+    // }
 
     // Update is called once per frame
     public bool Tick()
@@ -29,6 +30,7 @@ public class Passenger : MonoBehaviour
             return false;
         }
         if(!seated && busyTicks == 0){
+            time += 1;
             Transform currentNode = transform.parent;
             PathNode nodeScript = currentNode.GetComponent<PathNode>();
             foreach(var seat in nodeScript.attachedSeats){
@@ -48,6 +50,7 @@ public class Passenger : MonoBehaviour
                 seated = true;
             }
         }
+        transform.localPosition = Vector3.zero;
         return true;
     }
 }
